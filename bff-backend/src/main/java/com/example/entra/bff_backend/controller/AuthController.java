@@ -91,10 +91,23 @@ public class AuthController {
         }
 
         Map<String, Object> tokenResponse = authService.exchangeCodeForToken(code, codeVerifier);
-        
-        session.setAttribute("access_token", tokenResponse.get("access_token"));
+
+        String accessToken = (String) tokenResponse.get("access_token");
+        session.setAttribute("access_token", accessToken);
         session.setAttribute("refresh_token", tokenResponse.get("refresh_token"));
-        
+
+        // Log access token claims for debugging
+        if (accessToken != null) {
+            try {
+                JWT accessTokenJwt = JWTParser.parse(accessToken);
+                JWTClaimsSet accessTokenClaims = accessTokenJwt.getJWTClaimsSet();
+                logger.info("Access Token Claims: {}", accessTokenClaims.getClaims());
+                logger.info("Access Token Scopes: {}", accessTokenClaims.getStringClaim("scp"));
+            } catch (Exception e) {
+                logger.error("Error parsing access token", e);
+            }
+        }
+
         String idToken = (String) tokenResponse.get("id_token");
         if (idToken != null) {
             JWT jwt = JWTParser.parse(idToken);
