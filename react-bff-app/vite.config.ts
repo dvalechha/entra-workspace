@@ -9,8 +9,8 @@ export default defineConfig({
     federation({
       name: 'react_bff_app',
       remotes: {
-        react_metrics: 'http://localhost:5177/remoteEntry.js',
-        react_analytics: 'http://localhost:5178/remoteEntry.js',
+        react_metrics: 'http://localhost:5177/assets/remoteEntry.js',
+        react_analytics: 'http://localhost:5178/assets/remoteEntry.js',
       },
       shared: ['react', 'react-dom'],
     }),
