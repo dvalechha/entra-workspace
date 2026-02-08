@@ -12,10 +12,7 @@ export default defineConfig({
       exposes: {
         './App': './src/App.tsx',
       },
-      shared: {
-        react: { singleton: true },
-        'react-dom': { singleton: true },
-      },
+      shared: ['react', 'react-dom'],
     }),
   ],
   server: {
