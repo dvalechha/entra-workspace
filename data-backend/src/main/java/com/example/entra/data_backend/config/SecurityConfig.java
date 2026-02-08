@@ -26,17 +26,25 @@ public class SecurityConfig {
 
         // Convert scope claim to authorities
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SecurityConfig.class);
+            logger.info("Configuring JWT Converter. Token Headers: {}", jwt.getHeaders());
+            logger.info("Token Claims: {}", jwt.getClaims());
+            
             Collection<GrantedAuthority> authorities = new JwtGrantedAuthoritiesConverter()
                 .convert(jwt);
 
             // Extract scopes from 'scp' claim (Entra ID format)
             String scopes = jwt.getClaimAsString("scp");
+            logger.info("Raw 'scp' claim: {}", scopes);
+            
             if (scopes != null && !scopes.isEmpty()) {
                 var scopeAuthorities = Arrays.stream(scopes.split(" "))
                     .map(scope -> new SimpleGrantedAuthority("SCOPE_" + scope))
                     .collect(Collectors.toList());
                 authorities.addAll(scopeAuthorities);
             }
+            
+            logger.info("Final Authorities: {}", authorities);
 
             return authorities;
         });
