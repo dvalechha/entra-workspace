@@ -1,0 +1,30 @@
+server:
+  port: 3001
+
+spring:
+  application:
+    name: bff-backend
+  security:
+    oauth2:
+      client:
+        registration:
+          entra:
+            client-id: ${ENTRA_CLIENT_ID}
+            client-secret: ${ENTRA_CLIENT_SECRET}
+            scope:
+              - openid
+              - profile
+              - email
+              - offline_access
+              - api://${ENTRA_CLIENT_ID}/Data.Read
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/v1/auth/session/accessToken"
+        provider:
+          entra:
+            issuer-uri: https://login.microsoftonline.com/${ENTRA_TENANT_ID}/v2.0
+
+app:
+
+  react-url: http://localhost:5173
+
+  data-backend-url: http://localhost:3002

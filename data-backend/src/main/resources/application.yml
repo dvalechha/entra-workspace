@@ -1,0 +1,11 @@
+server:
+  port: 3002
+
+spring:
+  application:
+    name: data-backend
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://login.microsoftonline.com/${ENTRA_TENANT_ID:common}/v2.0
