@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -31,8 +32,7 @@ public class SecurityConfig {
             // Extract scopes from 'scp' claim (Entra ID format)
             String scopes = jwt.getClaimAsString("scp");
             if (scopes != null && !scopes.isEmpty()) {
-                var scopeAuthorities = scopes.split(" ")
-                    .stream()
+                var scopeAuthorities = Arrays.stream(scopes.split(" "))
                     .map(scope -> new SimpleGrantedAuthority("SCOPE_" + scope))
                     .collect(Collectors.toList());
                 authorities.addAll(scopeAuthorities);
