@@ -61,6 +61,7 @@ public class AuthService {
         body.add("code", code);
         body.add("redirect_uri", actualRedirectUri);
         body.add("code_verifier", codeVerifier);
+        body.add("scope", "openid profile email offline_access api://" + clientId + "/Data.Read");
 
         return restTemplate.postForObject(tokenUri, body, Map.class);
     }
@@ -77,6 +78,7 @@ public class AuthService {
         body.add("client_secret", clientSecret);
         body.add("grant_type", "refresh_token");
         body.add("refresh_token", refreshToken);
+        body.add("scope", "openid profile email offline_access api://" + clientId + "/Data.Read");
 
         return restTemplate.postForObject(tokenUri, body, Map.class);
     }
