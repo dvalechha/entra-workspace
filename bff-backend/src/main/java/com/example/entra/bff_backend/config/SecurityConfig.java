@@ -33,6 +33,7 @@ public class SecurityConfig {
                         .requestMatchers("/v1/auth/session/accessToken").permitAll()
                         .requestMatchers("/v1/auth/session/refreshToken").permitAll()
                         .requestMatchers("/v1/auth/me").permitAll()
+                        .requestMatchers("/v1/proxy/**").permitAll()
                         .anyRequest().authenticated()
                 );
         return http.build();
