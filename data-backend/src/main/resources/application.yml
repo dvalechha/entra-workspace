@@ -8,4 +8,9 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://login.microsoftonline.com/${ENTRA_TENANT_ID:common}/v2.0
+          issuer-uri: https://sts.windows.net/b033521b-5a18-4110-9d4e-9f28f461e099/
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
