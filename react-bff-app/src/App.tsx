@@ -104,13 +104,19 @@ function App() {
         throw new Error(`Logout failed with status: ${response.status}`)
       }
 
+      const { logoutUrl } = await response.json()
+
       // Clear local state
       setUser(null)
       setSelectedMenu(null)
       setError(null)
 
-      // Reload page to ensure clean state
-      window.location.href = '/'
+      // Redirect to Entra ID logout URL to clear IDP session
+      if (logoutUrl) {
+        window.location.href = logoutUrl
+      } else {
+        window.location.href = '/'
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Logout failed'
       setError(errorMessage)
