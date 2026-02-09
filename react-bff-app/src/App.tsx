@@ -93,13 +93,22 @@ function App() {
   // Handle logout
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:3001/v1/auth/session/clear', {
+      const response = await fetch('http://localhost:3001/v1/auth/session/clear', {
         method: 'POST',
         credentials: 'include',
       })
+
+      if (!response.ok) {
+        throw new Error(`Logout failed with status: ${response.status}`)
+      }
+
+      // Clear local state
       setUser(null)
       setSelectedMenu(null)
       setError(null)
+
+      // Reload page to ensure clean state
+      window.location.href = '/'
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Logout failed'
       setError(errorMessage)
