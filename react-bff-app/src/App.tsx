@@ -72,6 +72,7 @@ function App() {
   // Handle login redirect
   const handleLogin = async () => {
     try {
+      console.log('Fetching auth code URL from BFF...')
       const response = await fetch('http://localhost:3001/v1/auth/session/codeUrl', {
         method: 'GET',
         credentials: 'include',
@@ -82,6 +83,7 @@ function App() {
       }
 
       const { url } = await response.json()
+      console.log('Redirecting to auth URL:', url)
       window.location.href = url
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed'

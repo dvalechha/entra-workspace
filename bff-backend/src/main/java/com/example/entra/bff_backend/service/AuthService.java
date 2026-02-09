@@ -47,7 +47,7 @@ public class AuthService {
     public Map<String, Object> exchangeCodeForToken(String code, String codeVerifier) {
         // Construct token URI: issuerUri ends with /v2.0, so we need to remove it and build the full path
         String baseUri = issuerUri.endsWith("/v2.0")
-            ? issuerUri.substring(0, issuerUri.length() - 4)
+            ? issuerUri.substring(0, issuerUri.length() - 5)  // Remove /v2.0 including trailing slash
             : issuerUri;
         String tokenUri = baseUri + "/oauth2/v2.0/token";
 
@@ -69,7 +69,7 @@ public class AuthService {
     public Map<String, Object> refreshToken(String refreshToken) {
         // Construct token URI: issuerUri ends with /v2.0, so we need to remove it and build the full path
         String baseUri = issuerUri.endsWith("/v2.0")
-            ? issuerUri.substring(0, issuerUri.length() - 4)
+            ? issuerUri.substring(0, issuerUri.length() - 5)  // Remove /v2.0 including trailing slash
             : issuerUri;
         String tokenUri = baseUri + "/oauth2/v2.0/token";
 
