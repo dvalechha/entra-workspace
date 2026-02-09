@@ -50,7 +50,18 @@ public class AuthController {
     @PostMapping("/session/clear")
     public ResponseEntity<?> clearSession(HttpSession session) {
         session.invalidate();
-        return ResponseEntity.ok().build();
+
+        String baseUri;
+        if (issuerUri.endsWith("/v2.0")) {
+             baseUri = issuerUri.substring(0, issuerUri.lastIndexOf("/v2.0"));
+        } else {
+             baseUri = issuerUri;
+        }
+
+        String logoutUrl = baseUri + "/oauth2/v2.0/logout" +
+                "?post_logout_redirect_uri=" + URLEncoder.encode(reactUrl, StandardCharsets.UTF_8);
+
+        return ResponseEntity.ok(Map.of("logoutUrl", logoutUrl));
     }
 
     @GetMapping("/session/codeUrl")
