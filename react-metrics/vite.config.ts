@@ -16,11 +16,13 @@ export default defineConfig({
     }),
   ],
   server: {
-    port: 5177,
+    port: 5178,
+    strictPort: true,
     middlewareMode: false,
   },
   preview: {
-    port: 5177,
+    port: 5178,
+    strictPort: true,
   },
   build: {
     target: 'esnext',
