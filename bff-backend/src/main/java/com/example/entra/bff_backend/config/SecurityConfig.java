@@ -25,7 +25,10 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation().migrateSession()
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v1/auth/session/create").permitAll()
                         .requestMatchers("/v1/auth/session/clear").permitAll()
@@ -33,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/v1/auth/session/accessToken").permitAll()
                         .requestMatchers("/v1/auth/session/refreshToken").permitAll()
                         .requestMatchers("/v1/auth/me").permitAll()
+                        .requestMatchers("/v1/proxy/**").authenticated()
                         .anyRequest().authenticated()
                 );
         return http.build();
