@@ -66,9 +66,12 @@ public class AuthController {
         String actualRedirectUri = redirectUri.replace("{baseUrl}", "http://localhost:3001");
 
         // Construct auth URL: issuerUri ends with /v2.0, so we need to remove it and build the full path
-        String baseUri = issuerUri.endsWith("/v2.0")
-            ? issuerUri.substring(0, issuerUri.length() - 5)  // Remove /v2.0 including trailing slash
-            : issuerUri;
+        String baseUri;
+        if (issuerUri.endsWith("/v2.0")) {
+             baseUri = issuerUri.substring(0, issuerUri.lastIndexOf("/v2.0"));
+        } else {
+             baseUri = issuerUri;
+        }
 
         String authUrl = baseUri + "/oauth2/v2.0/authorize" +
                 "?client_id=" + clientId +

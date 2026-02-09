@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
@@ -26,6 +27,7 @@ public class SecurityConfig {
 
         // Convert scope claim to authorities
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(SecurityConfig.class);
             Collection<GrantedAuthority> authorities = new JwtGrantedAuthoritiesConverter()
                 .convert(jwt);
 
@@ -37,6 +39,17 @@ public class SecurityConfig {
                     .collect(Collectors.toList());
                 authorities.addAll(scopeAuthorities);
             }
+
+            // Extract roles from 'roles' claim
+            java.util.List<String> roles = jwt.getClaimAsStringList("roles");
+            logger.info("Raw 'roles' claim: {}", roles);
+            if (roles != null) {
+                var roleAuthorities = roles.stream()
+                    .map(role -> new SimpleGrantedAuthority(role)) // Map directly to authority (e.g., "role.alpha")
+                    .collect(Collectors.toList());
+                authorities.addAll(roleAuthorities);
+            }
+            logger.info("Final Authorities: {}", authorities);
 
             return authorities;
         });

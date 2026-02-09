@@ -33,7 +33,7 @@ public class ProxyController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No access token in session");
         }
 
-        String path = request.getRequestURI().replace("/v1/proxy", "");
+        String path = request.getRequestURI().replace("/v1/proxy", "/v1");
         String url = dataBackendUrl + path;
         if (request.getQueryString() != null) {
             url += "?" + request.getQueryString();

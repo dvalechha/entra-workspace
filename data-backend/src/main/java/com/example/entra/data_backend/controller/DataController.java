@@ -1,5 +1,6 @@
 package com.example.entra.data_backend.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +14,7 @@ import java.util.Map;
 public class DataController {
 
     @GetMapping("/metrics")
+    @PreAuthorize("hasAuthority('role.alpha')")
     public ResponseEntity<?> getMetrics() {
         Map<String, Object> data = new HashMap<>();
         data.put("source", "Data Backend");
@@ -23,6 +25,7 @@ public class DataController {
     }
 
     @GetMapping("/analytics")
+    @PreAuthorize("hasAuthority('role.beta')")
     public ResponseEntity<?> getAnalytics() {
         Map<String, Object> data = new HashMap<>();
         data.put("source", "Data Backend");
