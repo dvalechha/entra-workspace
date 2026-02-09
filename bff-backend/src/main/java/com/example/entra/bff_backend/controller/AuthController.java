@@ -66,9 +66,12 @@ public class AuthController {
         String actualRedirectUri = redirectUri.replace("{baseUrl}", "http://localhost:3001");
 
         // Construct auth URL: issuerUri ends with /v2.0, so we need to remove it and build the full path
-        String baseUri = issuerUri.endsWith("/v2.0")
-            ? issuerUri.substring(0, issuerUri.length() - 4)
-            : issuerUri;
+        String baseUri;
+        if (issuerUri.endsWith("/v2.0")) {
+             baseUri = issuerUri.substring(0, issuerUri.lastIndexOf("/v2.0"));
+        } else {
+             baseUri = issuerUri;
+        }
 
         String authUrl = baseUri + "/oauth2/v2.0/authorize" +
                 "?client_id=" + clientId +
@@ -91,10 +94,23 @@ public class AuthController {
         }
 
         Map<String, Object> tokenResponse = authService.exchangeCodeForToken(code, codeVerifier);
-        
-        session.setAttribute("access_token", tokenResponse.get("access_token"));
+
+        String accessToken = (String) tokenResponse.get("access_token");
+        session.setAttribute("access_token", accessToken);
         session.setAttribute("refresh_token", tokenResponse.get("refresh_token"));
-        
+
+        // Log access token claims for debugging
+        if (accessToken != null) {
+            try {
+                JWT accessTokenJwt = JWTParser.parse(accessToken);
+                JWTClaimsSet accessTokenClaims = accessTokenJwt.getJWTClaimsSet();
+                logger.info("Access Token Claims: {}", accessTokenClaims.getClaims());
+                logger.info("Access Token Scopes: {}", accessTokenClaims.getStringClaim("scp"));
+            } catch (Exception e) {
+                logger.error("Error parsing access token", e);
+            }
+        }
+
         String idToken = (String) tokenResponse.get("id_token");
         if (idToken != null) {
             JWT jwt = JWTParser.parse(idToken);

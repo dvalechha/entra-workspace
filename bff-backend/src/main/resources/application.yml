@@ -1,5 +1,10 @@
 server:
   port: 3001
+  servlet:
+    session:
+      cookie:
+        same-site: lax
+        secure: false
 
 spring:
   application:
@@ -24,7 +29,11 @@ spring:
             issuer-uri: https://login.microsoftonline.com/${ENTRA_TENANT_ID}/v2.0
 
 app:
-
   react-url: http://localhost:5173
-
   data-backend-url: http://localhost:3002
+
+logging:
+  level:
+    root: INFO
+    com.example.entra: DEBUG
+    org.springframework.security: DEBUG

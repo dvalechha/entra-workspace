@@ -1,5 +1,7 @@
 package com.example.entra.bff_backend.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -15,6 +17,7 @@ import java.util.Map;
 
 @Service
 public class AuthService {
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     @Value("${spring.security.oauth2.client.registration.entra.client-id}")
     private String clientId;
@@ -47,9 +50,13 @@ public class AuthService {
     public Map<String, Object> exchangeCodeForToken(String code, String codeVerifier) {
         // Construct token URI: issuerUri ends with /v2.0, so we need to remove it and build the full path
         String baseUri = issuerUri.endsWith("/v2.0")
-            ? issuerUri.substring(0, issuerUri.length() - 4)
+            ? issuerUri.substring(0, issuerUri.length() - 5)  // Remove /v2.0 including trailing slash
             : issuerUri;
         String tokenUri = baseUri + "/oauth2/v2.0/token";
+
+        logger.debug("issuerUri = {}", issuerUri);
+        logger.debug("baseUri = {}", baseUri);
+        logger.debug("tokenUri = {}", tokenUri);
 
         // Correcting redirectUri placeholder if necessary (though Spring handles it, we are manual here)
         String actualRedirectUri = redirectUri.replace("{baseUrl}", "http://localhost:3001");
@@ -61,6 +68,7 @@ public class AuthService {
         body.add("code", code);
         body.add("redirect_uri", actualRedirectUri);
         body.add("code_verifier", codeVerifier);
+        body.add("scope", "openid profile email offline_access api://" + clientId + "/Data.Read");
 
         return restTemplate.postForObject(tokenUri, body, Map.class);
     }
@@ -68,7 +76,7 @@ public class AuthService {
     public Map<String, Object> refreshToken(String refreshToken) {
         // Construct token URI: issuerUri ends with /v2.0, so we need to remove it and build the full path
         String baseUri = issuerUri.endsWith("/v2.0")
-            ? issuerUri.substring(0, issuerUri.length() - 4)
+            ? issuerUri.substring(0, issuerUri.length() - 5)  // Remove /v2.0 including trailing slash
             : issuerUri;
         String tokenUri = baseUri + "/oauth2/v2.0/token";
 
@@ -77,6 +85,7 @@ public class AuthService {
         body.add("client_secret", clientSecret);
         body.add("grant_type", "refresh_token");
         body.add("refresh_token", refreshToken);
+        body.add("scope", "openid profile email offline_access api://" + clientId + "/Data.Read");
 
         return restTemplate.postForObject(tokenUri, body, Map.class);
     }

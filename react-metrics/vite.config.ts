@@ -12,18 +12,17 @@ export default defineConfig({
       exposes: {
         './App': './src/App.tsx',
       },
-      shared: {
-        react: { singleton: true },
-        'react-dom': { singleton: true },
-      },
+      shared: ['react', 'react-dom'],
     }),
   ],
   server: {
-    port: 5177,
+    port: 5178,
+    strictPort: true,
     middlewareMode: false,
   },
   preview: {
-    port: 5177,
+    port: 5178,
+    strictPort: true,
   },
   build: {
     target: 'esnext',
