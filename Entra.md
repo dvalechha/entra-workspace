@@ -135,3 +135,35 @@ However, without being added to the tenant, clicking "Login" will result in an E
 | Shell App | `npm run dev` | 5173 |
 | Metrics MFE | `npm run dev` | 5178 |
 | Analytics MFE | `npm run dev` | 5179 |
+
+---
+
+## 🛠️ Installation Guide
+
+### 🍎 macOS
+#### 1. Install Java 17+
+The easiest way is using [Homebrew](https://brew.sh/):
+```bash
+brew install openjdk@17
+```
+Follow the post-installation instructions to add it to your PATH.
+
+#### 2. Install Maven
+```bash
+brew install maven
+```
+
+### 🪟 Windows
+#### 1. Install Java 17+
+Using **winget** (built-in package manager):
+```powershell
+winget install Microsoft.OpenJDK.17
+```
+Alternatively, download the installer from [Microsoft Build of OpenJDK](https://learn.microsoft.com/en-us/java/openjdk/download).
+
+#### 2. Install Maven
+Using **winget**:
+```powershell
+winget install Apache.Maven
+```
+Alternatively, download from the [Apache Maven website](https://maven.apache.org/download.cgi) and follow the manual installation steps.
