@@ -167,3 +167,42 @@ Using **winget**:
 winget install Apache.Maven
 ```
 Alternatively, download from the [Apache Maven website](https://maven.apache.org/download.cgi) and follow the manual installation steps.
+
+---
+
+## 🔐 Environment Variables Configuration
+
+To run the application, you need to configure your Entra ID credentials as environment variables.
+
+### 🍎 macOS (Zsh / Bash)
+Add the following lines to your profile file (e.g., `~/.zshrc` or `~/.bash_profile`):
+
+```bash
+export ENTRA_CLIENT_ID="your-client-id-here"
+export ENTRA_CLIENT_SECRET="your-client-secret-here"
+export ENTRA_TENANT_ID="your-tenant-id-here"
+```
+
+Then, reload your profile:
+```bash
+source ~/.zshrc  # or ~/.bash_profile
+```
+
+### 🪟 Windows (PowerShell)
+To set environment variables for the current session:
+
+```powershell
+$env:ENTRA_CLIENT_ID = "your-client-id-here"
+$env:ENTRA_CLIENT_SECRET = "your-client-secret-here"
+$env:ENTRA_TENANT_ID = "your-tenant-id-here"
+```
+
+To set them permanently via PowerShell:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable("ENTRA_CLIENT_ID", "your-client-id-here", "User")
+[System.Environment]::SetEnvironmentVariable("ENTRA_CLIENT_SECRET", "your-client-secret-here", "User")
+[System.Environment]::SetEnvironmentVariable("ENTRA_TENANT_ID", "your-tenant-id-here", "User")
+```
+
+*Note: You may need to restart your terminal/IDE for permanent changes to take effect.*
