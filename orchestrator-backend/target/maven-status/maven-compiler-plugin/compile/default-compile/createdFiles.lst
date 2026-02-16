@@ -1,0 +1,3 @@
+com/example/orchestrator/OrchestratorApplication.class
+com/example/orchestrator/controller/OrchestrationController.class
+com/example/orchestrator/client/CamundaClient.class

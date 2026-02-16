@@ -10,6 +10,7 @@ interface UserInfo {
 // Lazy load remote MFE components
 const MetricsApp = lazy(() => import('react_metrics/App'))
 const AnalyticsApp = lazy(() => import('react_analytics/App'))
+import CreditDashboard from './components/CreditDashboard'
 
 function App() {
   const [user, setUser] = useState<UserInfo | null>(null)
@@ -194,6 +195,10 @@ function App() {
         {/* Right Content Area */}
         <main className="content">
           {error && <div className="error">{error}</div>}
+
+          {selectedMenu === 'dashboard' && (
+            <CreditDashboard />
+          )}
 
           {selectedMenu === 'metrics' && (
             <Suspense fallback={<div className="loading-spinner">Loading Metrics...</div>}>

@@ -28,7 +28,6 @@ public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final AuthService authService;
-    private final org.springframework.core.env.Environment environment;
 
     @Value("${spring.security.oauth2.client.registration.entra.client-id}")
     private String clientId;
@@ -45,16 +44,12 @@ public class AuthController {
     @PostMapping("/session/create")
     public ResponseEntity<?> createSession(HttpSession session) {
         // Initialize session if not exists
-        return ResponseEntity.ok(Map.of("sessionId", session.getId()));
+        return ResponseEntity.ok(Map.of(" ", session.getId()));
     }
 
     @PostMapping("/session/clear")
     public ResponseEntity<?> clearSession(HttpSession session) {
         session.invalidate();
-
-        if (List.of(environment.getActiveProfiles()).contains("no-security")) {
-            return ResponseEntity.ok(Map.of("logoutUrl", ""));
-        }
 
         String baseUri;
         if (issuerUri.endsWith("/v2.0")) {
@@ -73,10 +68,6 @@ public class AuthController {
     public ResponseEntity<?> getCodeUrl(HttpSession session) throws Exception {
         // Ensure session is created
         session.getId();
-
-        if (List.of(environment.getActiveProfiles()).contains("no-security")) {
-            return ResponseEntity.ok(Map.of("url", "http://localhost:3001/v1/auth/session/accessToken?code=mock-code"));
-        }
 
         String codeVerifier = authService.generateCodeVerifier();
         String codeChallenge = authService.generateCodeChallenge(codeVerifier);
@@ -107,14 +98,6 @@ public class AuthController {
 
     @GetMapping("/session/accessToken")
     public void handleCallback(@RequestParam String code, HttpSession session, HttpServletResponse response) throws Exception {
-        if ("mock-code".equals(code) && List.of(environment.getActiveProfiles()).contains("no-security")) {
-            session.setAttribute("access_token", "mock-access-token");
-            session.setAttribute("user_name", "Mock Developer");
-            session.setAttribute("user_roles", List.of("role.alpha", "role.beta")); // Grant all roles
-            response.sendRedirect(reactUrl);
-            return;
-        }
-
         String codeVerifier = (String) session.getAttribute("code_verifier");
         if (codeVerifier == null) {
             response.sendError(400, "Missing code_verifier in session");
