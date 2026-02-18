@@ -45,7 +45,7 @@ public class AuthController {
     @PostMapping("/session/create")
     public ResponseEntity<?> createSession(HttpSession session) {
         // Initialize session if not exists
-        return ResponseEntity.ok(Map.of("sessionId", session.getId()));
+        return ResponseEntity.ok(Map.of(" ", session.getId()));
     }
 
     @PostMapping("/session/clear")

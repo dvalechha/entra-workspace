@@ -1,208 +1,149 @@
-# Entra ID BFF & Composable Micro-Frontend Architecture
+# 🚀 CLI COMMAND: React Frontend Integration (Proxy & Dashboard)
 
-Welcome to the **Entra Workspace** repository! This project demonstrates a secure, scalable architecture using a **Backend-for-Frontend (BFF)** pattern with Microsoft Entra ID (formerly Azure AD) and **Module Federation** for composable micro-frontends (MFEs).
-
-## 🏗️ Architecture Overview
-
-The system is composed of five distinct applications working together:
-
-### Backends (Java Spring Boot)
-1.  **`bff-backend` (Port 3001)**
-    -   **Role:** The entry point for the frontend. Handles all authentication (OAuth2/OIDC), session management, and proxies API requests to downstream services.
-    -   **Security:** Keeps tokens (Access/Refresh) server-side in an HTTP-only session. The frontend never sees the tokens.
-    -   **Key Features:** Manual session validation, Entra ID integration, Proxy logic.
-
-2.  **`data-backend` (Port 3002)**
-    -   **Role:** The protected resource server. Provides business data (Metrics, Analytics).
-    -   **Security:** Validates JWT Access Tokens passed by the BFF. Enforces Role-Based Access Control (RBAC).
-    -   **Key Features:** `@PreAuthorize` annotations for fine-grained security.
-
-### Frontends (React + Vite + Module Federation)
-3.  **`react-bff-app` (Shell - Port 5173)**
-    -   **Role:** The main container application. Handles login/logout, navigation, and dynamically loads remote MFEs.
-    -   **Key Features:** Module Federation Host, Auth state management.
-
-4.  **`react-metrics` (MFE - Port 5178)**
-    -   **Role:** A micro-frontend exposing a "Metrics" dashboard.
-    -   **Access:** Restricted to users with `role.alpha`.
-
-5.  **`react-analytics` (MFE - Port 5179)**
-    -   **Role:** A micro-frontend exposing an "Analytics" dashboard.
-    -   **Access:** Restricted to users with `role.beta`.
+**Goal:** Configure the `react-bff-app` to route calls through a Node proxy to the `orchestrator-backend` (Port 8081) and implement the Credit Intake Dashboard.
 
 ---
 
-## 🔐 Roles & Features
+## Step 1: Node Proxy Configuration
+Update `react-bff-app/package.json` to include the proxy entry. This tells the React development server to forward any unknown requests (like `/workflow/*`) to the orchestrator.
 
-Access to features is strictly controlled by Entra ID App Roles assigned to your user account.
+```json
+{
+  "name": "react-bff-app",
+  "version": "0.1.0",
+  "private": true,
+  "proxy": "http://localhost:8081",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  }
+}
 
-| Entra ID Role | Feature Access | API Endpoint | Description |
-| :--- | :--- | :--- | :--- |
-| **`role.alpha`** | **Metrics Dashboard** | `/v1/data/metrics` | View system health and performance metrics. |
-| **`role.beta`** | **Analytics Dashboard** | `/v1/data/analytics` | View user growth and engagement analytics. |
+Step 2: Workflow Service Layer
+Create react-bff-app/src/services/workflowService.js. By using relative paths, we ensure all traffic hits the Node Proxy first.
 
-> **Note:** The Shell App (`react-bff-app`) dynamically builds the sidebar menu based on the roles present in your ID Token. If you don't have a role, you won't see the corresponding menu item!
+/**
+ * workflowService.js
+ * Handles all communication with the Orchestrator via Node Proxy.
+ */
+export const workflowService = {
+  
+  // Fetches cases based on status: '', 'running', or 'completed'
+  fetchCases: async (status = '') => {
+    const url = status ? `/workflow/cases?status=${status}` : '/workflow/cases';
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Network response was not ok');
+    return response.json();
+  },
 
----
+  // Fetches the macro roadmap for a specific case
+  fetchMacroView: async (lookupId) => {
+    const response = await fetch(`/workflow/case/${lookupId}/macro`);
+    if (!response.ok) throw new Error('Failed to fetch roadmap');
+    return response.json();
+  }
+};
 
-## 🚀 Getting Started
+Step 3: Credit Intake Dashboard Component
+Create react-bff-app/src/components/CreditDashboard.js. This provides the interactive table and status filters we defined in the backend.
 
-### Prerequisites
--   **Java 17+** (for Spring Boot backends)
--   **Node.js 18+** (for React frontends)
--   **Maven** (Wrapper `mvnw` is included)
+import React, { useState, useEffect } from 'react';
+import { workflowService } from '../services/workflowService';
 
-### 1. Start the Backends
-Open two terminal windows/tabs:
+const CreditDashboard = () => {
+  const [cases, setCases] = useState([]);
+  const [statusFilter, setStatusFilter] = useState(''); // Default: All
+  const [isLoading, setIsLoading] = useState(true);
 
-**Terminal 1 (BFF):**
-```bash
-cd bff-backend
-./mvnw spring-boot:run
-```
-*Wait for it to start on port 3001.*
+  useEffect(() => {
+    setIsLoading(true);
+    workflowService.fetchCases(statusFilter)
+      .then(data => {
+        setCases(data);
+        setIsLoading(false);
+      })
+      .catch(err => console.error("Error loading dashboard:", err));
+  }, [statusFilter]);
 
-**Terminal 2 (Data Backend):**
-```bash
-cd data-backend
-./mvnw spring-boot:run
-```
-*Wait for it to start on port 3002.*
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-pair', alignItems: 'center', marginBottom: '20px' }}>
+        <h2>Commercial Credit Intake</h2>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setStatusFilter('')} style={btnStyle(statusFilter === '')}>All</button>
+          <button onClick={() => setStatusFilter('running')} style={btnStyle(statusFilter === 'running')}>Active</button>
+          <button onClick={() => setStatusFilter('completed')} style={btnStyle(statusFilter === 'completed')}>Completed</button>
+        </div>
+      </header>
 
-### 2. Start the Frontends
-Open three terminal windows/tabs:
+      {isLoading ? (
+        <p>Syncing with Orchestrator...</p>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+          <thead style={{ backgroundColor: '#f4f4f4' }}>
+            <tr>
+              <th style={tdStyle}>Business Key</th>
+              <th style={tdStyle}>Status</th>
+              <th style={tdStyle}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cases.map(item => (
+              <tr key={item.caseId}>
+                <td style={tdStyle}>{item.businessKey || 'N/A'}</td>
+                <td style={tdStyle}>
+                  <span style={statusBadge(item.status)}>
+                    {item.status}
+                  </span>
+                </td>
+                <td style={tdStyle}>
+                  <button style={{ color: '#007bff', border: 'none', background: 'none', cursor: 'pointer' }}>
+                    View Roadmap
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+};
 
-**Terminal 3 (Metrics MFE):**
-```bash
-cd react-metrics
-npm install
-npm run dev
-```
-*Runs on port 5178.*
+// Simple inline styles for rapid CLI deployment
+const tdStyle = { padding: '12px', border: '1px solid #ddd', textAlign: 'left' };
+const btnStyle = (active) => ({
+  padding: '8px 16px',
+  cursor: 'pointer',
+  backgroundColor: active ? '#007bff' : '#eee',
+  color: active ? '#fff' : '#333',
+  border: 'none',
+  borderRadius: '4px'
+});
+const statusBadge = (status) => ({
+  padding: '4px 8px',
+  borderRadius: '12px',
+  fontSize: '12px',
+  fontWeight: 'bold',
+  backgroundColor: status === 'RUNNING' ? '#e7f3ff' : '#e6ffed',
+  color: status === 'RUNNING' ? '#007bff' : '#28a745'
+});
 
-**Terminal 4 (Analytics MFE):**
-```bash
-cd react-analytics
-npm install
-npm run dev
-```
-*Runs on port 5179.*
+export default CreditDashboard;
 
-**Terminal 5 (Shell App):**
-```bash
-cd react-bff-app
-npm install
-npm run dev
-```
-*Runs on port 5173.*
 
-### 3. Access the Application
-Open your browser and navigate to:
-👉 **http://localhost:5173**
+Step 4: Final Injection
+Update react-bff-app/src/App.js to render the CreditDashboard.
 
----
+import CreditDashboard from './components/CreditDashboard';
 
-## ⚠️ Important: Testing & Login Access
+function App() {
+  return (
+    <div className="App">
+       <CreditDashboard />
+    </div>
+  );
+}
 
-The application uses **Microsoft Entra ID** for authentication.
-
-**To actually log in and test the application, your Microsoft account (email) MUST be pre-registered in the Entra ID tenant.**
-
-### If you want to test the full login flow:
-1.  **Contact the Repository Owner (Deepak)**.
-2.  Provide **two Microsoft account emails** you wish to use for testing.
-3.  The owner will:
-    -   Add these users to the Entra ID App Registration.
-    -   Assign **`role.alpha`** to one user (to test Metrics access).
-    -   Assign **`role.beta`** to the other user (to test Analytics access).
-
-### If you cannot contact the owner:
-You can still explore the codebase to understand the architectural patterns:
--   **BFF Pattern:** See `bff-backend/src/main/java/com/example/entra/bff_backend/controller/ProxyController.java`.
--   **RBAC:** See `data-backend/src/main/java/com/example/entra/data_backend/controller/DataController.java`.
--   **Module Federation:** See `react-bff-app/vite.config.ts`.
-
-However, without being added to the tenant, clicking "Login" will result in an Entra ID error.
-
----
-
-## 🛠️ Key Commands Summary
-
-| Service | Command | Port |
-| :--- | :--- | :--- |
-| BFF Backend | `./mvnw spring-boot:run` | 3001 |
-| Data Backend | `./mvnw spring-boot:run` | 3002 |
-| Shell App | `npm run dev` | 5173 |
-| Metrics MFE | `npm run dev` | 5178 |
-| Analytics MFE | `npm run dev` | 5179 |
-
----
-
-## 🛠️ Installation Guide
-
-### 🍎 macOS
-#### 1. Install Java 17+
-The easiest way is using [Homebrew](https://brew.sh/):
-```bash
-brew install openjdk@17
-```
-Follow the post-installation instructions to add it to your PATH.
-
-#### 2. Install Maven
-```bash
-brew install maven
-```
-
-### 🪟 Windows
-#### 1. Install Java 17+
-Using **winget** (built-in package manager):
-```powershell
-winget install Microsoft.OpenJDK.17
-```
-Alternatively, download the installer from [Microsoft Build of OpenJDK](https://learn.microsoft.com/en-us/java/openjdk/download).
-
-#### 2. Install Maven
-Using **winget**:
-```powershell
-winget install Apache.Maven
-```
-Alternatively, download from the [Apache Maven website](https://maven.apache.org/download.cgi) and follow the manual installation steps.
-
----
-
-## 🔐 Environment Variables Configuration
-
-To run the application, you need to configure your Entra ID credentials as environment variables.
-
-### 🍎 macOS (Zsh / Bash)
-Add the following lines to your profile file (e.g., `~/.zshrc` or `~/.bash_profile`):
-
-```bash
-export ENTRA_CLIENT_ID="your-client-id-here"
-export ENTRA_CLIENT_SECRET="your-client-secret-here"
-export ENTRA_TENANT_ID="your-tenant-id-here"
-```
-
-Then, reload your profile:
-```bash
-source ~/.zshrc  # or ~/.bash_profile
-```
-
-### 🪟 Windows (PowerShell)
-To set environment variables for the current session:
-
-```powershell
-$env:ENTRA_CLIENT_ID = "your-client-id-here"
-$env:ENTRA_CLIENT_SECRET = "your-client-secret-here"
-$env:ENTRA_TENANT_ID = "your-tenant-id-here"
-```
-
-To set them permanently via PowerShell:
-
-```powershell
-[System.Environment]::SetEnvironmentVariable("ENTRA_CLIENT_ID", "your-client-id-here", "User")
-[System.Environment]::SetEnvironmentVariable("ENTRA_CLIENT_SECRET", "your-client-secret-here", "User")
-[System.Environment]::SetEnvironmentVariable("ENTRA_TENANT_ID", "your-tenant-id-here", "User")
-```
-
-*Note: You may need to restart your terminal/IDE for permanent changes to take effect.*
+export default App;

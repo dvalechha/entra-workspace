@@ -17,6 +17,12 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    proxy: {
+      '/workflow': {
+        target: 'http://localhost:8081',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     target: 'esnext',

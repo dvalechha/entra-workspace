@@ -7,6 +7,12 @@ export interface MenuItem {
 
 export const menuConfig: MenuItem[] = [
   {
+    id: 'dashboard',
+    role: 'role.alpha',
+    label: 'Credit Intake',
+    port: 5173,
+  },
+  {
     id: 'metrics',
     role: 'role.alpha',
     label: 'Metrics',
